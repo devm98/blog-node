@@ -1,6 +1,6 @@
 class SiteController {
   //[GET] /
-  index(req, res) {
+  async index(req, res, next) {
     res.render("home");
   }
 
