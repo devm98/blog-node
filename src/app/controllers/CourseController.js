@@ -34,10 +34,70 @@ class CourseController {
       const formData = req.body;
       formData.image = `https://img.youtube.com/vi/${formData.vidId}/sddefault.jpg`;
       await Course.create(formData);
-      console.log("Create course successfully!!!");
       res.redirect("/courses");
     } catch (error) {
       next(error);
+    }
+  }
+
+  async edit(req, res, next) {
+    try {
+      const courseFound = await Course.findById(req.params.id);
+      res.render("courses/edit", mongooseToObj(courseFound));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async update(req, res, next) {
+    try {
+      await Course.updateOne({ _id: req.params.id }, req.body);
+      res.redirect("/me/stored/courses");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async remove(req, res, next) {
+    try {
+      await Course.delete({ _id: req.params.id });
+      res.redirect("back");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async destroy(req, res, next) {
+    try {
+      await Course.deleteOne({ _id: req.params.id });
+      res.redirect("back");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restore(req, res, next) {
+    try {
+      await Course.restore({ _id: req.params.id });
+      res.redirect("back");
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async handleFormActions(req, res, next) {
+    switch (req.body.action) {
+      case "delete":
+        await Course.delete({
+          _id: {
+            $in: req.body.courseIds,
+          },
+        });
+        res.redirect("back");
+        return;
+      default:
+        res.json({ message: "Action is invalid!" });
+        return;
     }
   }
 }

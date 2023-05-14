@@ -1,6 +1,6 @@
 <div class="mt-4">
-  <h2>Đăng khóa học</h2>
-  <form method="POST" action="/courses/store">
+  <h2>Cập nhật khóa học</h2>
+  <form method="POST" action="/courses/{{_id}}?_method=PUT">
     <div class="form-group">
       <label>Tên khóa học</label>
       <input
@@ -8,6 +8,7 @@
         name="name"
         class="form-control"
         placeholder="Nhập tên khóa học"
+        value="{{name}}"
       />
     </div>
     <div class="form-group">
@@ -17,6 +18,7 @@
         name="description"
         class="form-control"
         placeholder="Nhập mô tả"
+        value="{{description}}"
       />
     </div>
     <div class="form-group">
@@ -26,8 +28,9 @@
         name="vidId"
         class="form-control"
         placeholder="Nhập video ID"
+        value="{{vidId}}"
       />
     </div>
-    <button type="submit" class="btn btn-primary">Thêm khóa học</button>
+    <button type="submit" class="btn btn-primary">Lưu lại</button>
   </form>
 </div>

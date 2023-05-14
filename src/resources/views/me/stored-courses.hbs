@@ -1,0 +1,190 @@
+<div class="mt-4">
+  <div class="mb-3">
+    <div class="d-flex">
+      <h3>Khóa học của tôi</h3>
+      <a href="/courses/create" class="ml-auto">
+        <button class="btn btn-primary" type="button">
+          + Thêm khóa học
+        </button>
+      </a>
+    </div>
+    <a href="/me/trash/courses">Khóa học đã xóa ({{deletedCount}})</a>
+  </div>
+  <form method="POST" action="/courses/handle-form-actions">
+    <div class="mb-3 d-flex align-items-center">
+      <div class="form-group mr-3">
+        <div class="custom-control custom-checkbox">
+          <input
+            type="checkbox"
+            class="custom-control-input"
+            id="checked-all"
+          />
+          <label class="custom-control-label" for="checked-all">Chọn tất cả</label>
+        </div>
+      </div>
+      <div class="form-group mr-3">
+        <select class="form-control form-control-sm" name="action" required>
+          <option value="">--Hành động--</option>
+          <option value="delete">Xóa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <button
+          class="btn btn-primary btn-sm btn-submit-action-all"
+          type="submit"
+          disabled
+        >
+          Thực hiện
+        </button>
+      </div>
+    </div>
+    {{_sort.type}}
+    <table class="table table-sm table-striped table-bordered">
+      <thead>
+        <tr>
+          <th></th>
+          <th scope="col">#</th>
+          <th scope="col">Tên khóa học
+            {{{sortable "name" _sort}}}
+          </th>
+          <th scope="col">Mô tả {{{sortable "description" _sort}}}</th>
+          <th scope="col">TG tạo {{{sortable "createdAt" _sort}}}</th>
+          <th scope="col">TG cập nhật {{{sortable "updatedAt" _sort}}}</th>
+          <th scope="col" class="text-center">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each courses}}
+          <tr>
+            <td>
+              <div class="custom-control custom-checkbox">
+                <input
+                  type="checkbox"
+                  class="custom-control-input"
+                  id="{{this._id}}"
+                  value="{{this._id}}"
+                  name="courseIds[]"
+                />
+                <label class="custom-control-label" for="{{this._id}}"></label>
+              </div>
+            </td>
+            <th scope="row">{{sum @index 1}}</th>
+            <td>{{this.name}}</td>
+            <td>{{this.description}}</td>
+            <td>{{formatDate this.createdAt}}</td>
+            <td>{{formatDate this.updatedAt}}</td>
+            <td class="text-center">
+              <a href="/courses/{{this._id}}/edit">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                >Sửa</button>
+              </a>
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                data-toggle="modal"
+                data-target="#delete-card-modal"
+                data-id="{{this._id}}"
+              >Xóa</button>
+            </td>
+          </tr>
+        {{else}}
+          <tr>
+            <td colspan="6" class="text-center">
+              Bạn chưa có khóa học nào.
+              <a href="/courses/create">Đăng khóa học</a>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </form>
+
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  id="delete-card-modal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="delete-card-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="delete-card-label">Xóa khóa học</h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Bạn có chắc muốn xóa khóa học này ?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-delete-card">Đồng
+          ý</button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-dismiss="modal"
+        >Hủy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{! Delete hidden form }}
+<form name="delete-card-form" method="POST" action=""></form>
+
+{{! prettier-ignore }}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var courseId;
+    var deleteBtn = $("#btn-delete-card");
+    var deleteForm = document.forms['delete-card-form'];
+    var containerForm = $('forms[name="container-form"]');
+    var checkedAll = $("#checked-all");
+    var courseItemCheckbox = $('input[name="courseIds[]"]');
+    var checkAllSubmitBtn = $('.btn-submit-action-all')
+
+    $('#delete-card-modal').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      courseId = button.data('id');
+    });
+
+    $(deleteBtn).click(() => {
+      deleteForm.action = '/courses/' + courseId + '?_method=DELETE';
+      deleteForm.submit()
+    })
+
+    // checkbox onclick
+    checkedAll.change(function(){
+      console.log("checkedAll", $(this).prop("checked"))
+      var isCheckedAll = $(this).prop("checked");
+      courseItemCheckbox.prop('checked', isCheckedAll);
+      renderCheckAllSubmitBtn()
+    })
+
+    // Course item checkbox changed
+    courseItemCheckbox.change(function(){
+      var isCheckedAll = courseItemCheckbox.length === $('input[name="courseIds[]"]:checked').length
+      checkedAll.prop('checked', isCheckedAll);
+      renderCheckAllSubmitBtn()
+    })
+
+    // Re-render check all submit button
+    function renderCheckAllSubmitBtn() {
+      var checkedCount = $('input[name="courseIds[]"]:checked').length;
+      checkAllSubmitBtn.prop('disabled', checkedCount <= 0)
+    }
+  })
+</script>
